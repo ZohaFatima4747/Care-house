@@ -3,8 +3,18 @@ import axios from "axios";
 import "./Dashboard.css";
 
 const months = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 export default function StudentDashboard({ student, token, onLogout }) {
@@ -17,6 +27,34 @@ export default function StudentDashboard({ student, token, onLogout }) {
   const [selectedMonth, setSelectedMonth] = useState(null);
 
   const BASE_URL = "https://backend-care-house.vercel.app";
+
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = () => {
+        const img = new Image();
+        img.src = reader.result;
+
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+
+          const MAX_WIDTH = 800; // mobile safe
+          const scaleSize = MAX_WIDTH / img.width;
+
+          canvas.width = MAX_WIDTH;
+          canvas.height = img.height * scaleSize;
+
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.6); // 60% quality
+          resolve(compressedBase64);
+        };
+      };
+    });
+  };
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -60,9 +98,9 @@ export default function StudentDashboard({ student, token, onLogout }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setPayments(prev => [
-        ...prev.filter(p => p.month !== selectedMonth),
-        res.data.payment
+      setPayments((prev) => [
+        ...prev.filter((p) => p.month !== selectedMonth),
+        res.data.payment,
       ]);
 
       setSubmitMsg("Payment submitted successfully!");
@@ -75,18 +113,24 @@ export default function StudentDashboard({ student, token, onLogout }) {
     }
   };
 
-  const getMonthPayment = (month) => payments.find(p => p.month === month);
+  const getMonthPayment = (month) => payments.find((p) => p.month === month);
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>Welcome {student.name}</h1>
-        <button className="logout-btn" onClick={onLogout}>Logout</button>
+        <button className="logout-btn" onClick={onLogout}>
+          Logout
+        </button>
       </header>
 
       <div className="student-info">
-        <p><strong>Room:</strong> {student.roomNo}</p>
-        <p><strong>Security Fee:</strong> {student.SecurityFee || "-"}</p>
+        <p>
+          <strong>Room:</strong> {student.roomNo}
+        </p>
+        <p>
+          <strong>Security Fee:</strong> {student.SecurityFee || "-"}
+        </p>
       </div>
 
       {selectedMonth && (
@@ -119,12 +163,11 @@ export default function StudentDashboard({ student, token, onLogout }) {
                     id="screenshot-upload"
                     accept="image/*"
                     style={{ display: "none" }}
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = () => setScreenshotUrl(reader.result);
-                        reader.readAsDataURL(file);
+                        const compressedImage = await compressImage(file);
+                        setScreenshotUrl(compressedImage);
                       }
                     }}
                     required
@@ -133,14 +176,20 @@ export default function StudentDashboard({ student, token, onLogout }) {
                     {screenshotUrl ? "Change Screenshot" : "Upload Screenshot"}
                   </label>
                   {screenshotUrl && (
-                    <img src={screenshotUrl} alt="Preview" className="screenshot-preview" />
+                    <img
+                      src={screenshotUrl}
+                      alt="Preview"
+                      className="screenshot-preview"
+                    />
                   )}
                 </div>
               )}
 
               <div className="modal-actions">
                 <button type="submit">Submit</button>
-                <button type="button" onClick={() => setSelectedMonth(null)}>Cancel</button>
+                <button type="button" onClick={() => setSelectedMonth(null)}>
+                  Cancel
+                </button>
               </div>
               {submitMsg && <p className="submit-msg">{submitMsg}</p>}
             </form>
@@ -173,14 +222,24 @@ export default function StudentDashboard({ student, token, onLogout }) {
                       <td>{month}</td>
                       <td>{new Date().getFullYear()}</td>
                       <td>{pay?.paymentType || "-"}</td>
-                      <td style={{ color: statusColor(pay?.status), fontWeight: "bold" }}>
+                      <td
+                        style={{
+                          color: statusColor(pay?.status),
+                          fontWeight: "bold",
+                        }}
+                      >
                         {pay?.status || "Not Paid"}
                       </td>
                       <td>{pay?.adminRemarks || "-"}</td>
                       <td>
                         <button
-                          className={`pay-btn ${pay?.status === "Received" ? "paid-btn" : ""}`}
-                          onClick={() => pay?.status !== "Received" && handleMonthClick(month)}
+                          className={`pay-btn ${
+                            pay?.status === "Received" ? "paid-btn" : ""
+                          }`}
+                          onClick={() =>
+                            pay?.status !== "Received" &&
+                            handleMonthClick(month)
+                          }
                           disabled={pay?.status === "Received"}
                         >
                           {pay?.status === "Received" ? "Paid" : "Pay Now"}
