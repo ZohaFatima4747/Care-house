@@ -1,0 +1,332 @@
+/* ----------------------------
+   Dashboard Container
+---------------------------- */
+.dashboard-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+th{
+  color: black;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.logout-btn {
+  background-color: #f44336;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #d32f2f;
+}
+
+/* Student Info */
+.student-info p {
+  font-size: 16px;
+  margin: 5px 0;
+}
+
+/* ----------------------------
+   Payment Section & Form
+---------------------------- */
+.payment-section {
+  margin-top: 30px;
+}
+
+.payment-section h2 {
+  margin-bottom: 15px;
+}
+
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-form input,
+.payment-form select,
+.payment-form button {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.payment-form button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.payment-form button:hover {
+  background-color: #45a049;
+}
+
+/* Online Payment Upload */
+.upload-btn {
+  display: inline-block;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.upload-btn:hover {
+  background-color: #45a049;
+}
+
+.screenshot-preview {
+  margin-top: 10px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Submit message */
+.submit-msg {
+  color: green;
+  margin-top: 5px;
+  font-weight: 500;
+}
+
+/* ----------------------------
+   Payment Table
+---------------------------- */
+.payment-history {
+  margin-top: 30px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+table th,
+table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  vertical-align: middle;
+}
+
+table th {
+  background-color: #f2f2f2;
+  font-weight: 600;
+}
+
+.pay-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 14px;
+}
+
+.pay-btn:hover {
+  background-color: #0056b3;
+}
+
+.paid-btn {
+  background-color: #4CAF50;
+  cursor: default;
+}
+
+/* Payment Status Colors */
+.status-received {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.status-pending {
+  color: #f0ad4e;
+  font-weight: bold;
+}
+
+.status-notreceived {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.status-notpaid {
+  color: #ccc;
+  font-weight: bold;
+}
+
+/* ----------------------------
+   Modal Styles
+---------------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 50px;
+}
+
+.modal {
+  background: #fff;
+  padding: 25px 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 95%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.modal h3 {
+  margin-top: 0;
+}
+
+.modal-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+/* ----------------------------
+   Image Popup
+---------------------------- */
+.image-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.image-popup {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.popup-img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.image-popup .close-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #fff;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 5px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ----------------------------
+   Responsive Breakpoints
+---------------------------- */
+@media screen and (max-width: 768px) {
+  .dashboard-container {
+    padding: 20px 15px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .student-info p {
+    font-size: 14px;
+  }
+
+  .payment-form input,
+  .payment-form select,
+  .payment-form button,
+  .upload-btn {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  table th, table td {
+    font-size: 13px;
+    padding: 6px 8px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logout-btn {
+    align-self: flex-end;
+    margin-top: 10px;
+  }
+
+  .payment-section h2,
+  .payment-history h2 {
+    font-size: 1.2rem;
+  }
+
+  .payment-form input,
+  .payment-form select,
+  .payment-form button,
+  .upload-btn {
+    font-size: 13px;
+    padding: 6px;
+  }
+
+  table th, table td {
+    font-size: 12px;
+    padding: 5px;
+  }
+
+  .screenshot-preview {
+    width: 70px;
+  }
+}
