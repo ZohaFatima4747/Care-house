@@ -22,16 +22,20 @@ export default function Home() {
   const [adminToken, setAdminToken] = useState("");
   const [adminLoginError, setAdminLoginError] = useState("");
 
-  const BASE_URL = "https://backend-care-house.vercel.app";
+  const BASE_URL = "https://backend-hostel-sigma.vercel.app/api";
 
+  // Fetch students from backend
   useEffect(() => {
     const fetchStudents = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get(`${BASE_URL}/api/students`);
-        setStudents(res.data);
-        setLoading(false);
+        const res = await axios.get(`${BASE_URL}/students`);
+        console.log("Fetched students:", res.data);
+        setStudents(res.data || []);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching students:", err);
+        setStudents([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -50,7 +54,7 @@ export default function Home() {
     if (!currentStudent) return;
 
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/login`, {
+      const res = await axios.post(`${BASE_URL}/auth/login`, {
         name: currentStudent.name,
         password,
       });
@@ -66,7 +70,7 @@ export default function Home() {
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${BASE_URL}/api/admin/login`, {
+      const res = await axios.post(`${BASE_URL}/admin/login`, {
         name: "admin",
         password: adminPassword,
       });
@@ -86,6 +90,7 @@ export default function Home() {
     setAdminToken("");
   };
 
+  // Show dashboard if logged in
   if (loggedInStudent) {
     return (
       <StudentDashboard
@@ -127,24 +132,27 @@ export default function Home() {
 
         {loading ? (
           <p>Loading students...</p>
-        ) : (
+        ) : students.length > 0 ? (
           <div className="students-grid">
-            {students.map((student) => (
+            {students.map((student, index) => (
               <div
-                key={student._id}
+                key={student._id || student.id || index}
                 className="student-card"
                 onClick={() => handleStudentClick(student)}
               >
-                <h3>{student.name}</h3>
-                <p>Room: {student.roomNo}</p>
+                <h3>{student.name || "No Name"}</h3>
+                <p>Room: {student.roomNo || "N/A"}</p>
               </div>
             ))}
           </div>
+        ) : (
+          <p>No students found.</p>
         )}
       </div>
 
       <div className="home-right"></div>
 
+      {/* Student login modal */}
       {showLogin && currentStudent && (
         <div className="login-modal-overlay">
           <div className="login-modal">
@@ -170,6 +178,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Admin login modal */}
       {showAdminLogin && (
         <div className="login-modal-overlay">
           <div className="login-modal">
