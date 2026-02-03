@@ -1,13 +1,16 @@
 import axios from "axios";
 
-// Use your public backend URL
+// ✅ ONLY backend URL (ONE SOURCE OF TRUTH)
 const API_URL = "https://backend-hostel-sigma.vercel.app/api";
 
 export const api = axios.create({
   baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Add token automatically for authenticated requests
+// ✅ Token handler
 export const setAuthToken = (token) => {
   if (token) {
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
