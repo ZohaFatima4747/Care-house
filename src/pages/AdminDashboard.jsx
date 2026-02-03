@@ -13,7 +13,7 @@ export default function AdminDashboard({ admin, token, onLogout }) {
   const fetchPayments = async () => {
     try {
       const res = await axios.get(
-        "https://backend-care-house.vercel.app/api/admin/payments",
+        "https://backend-hostel-sigma.vercel.app/api/admin/payments",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPayments(res.data);
@@ -30,7 +30,7 @@ const handleStatusUpdate = async (paymentId, status) => {
   const remarks = prompt("Enter remarks (optional):", "");
   try {
     const res = await axios.put(
-      `https://backend-care-house.vercel.app/api/admin/payments/${paymentId}/status`,
+      `https://backend-hostel-sigma.vercel.app/api/admin/payments/${paymentId}/status`,
       { status, adminRemarks: remarks || "" },
       { headers: { Authorization: `Bearer ${token}` } }
     );
