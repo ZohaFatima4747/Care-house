@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { api, setAuthToken } from "../api"; // adjust path if needed
+import axios from "axios";
 import "./Dashboard.css";
 
 const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
 export default function StudentDashboard({ student, token, onLogout }) {
@@ -17,50 +17,52 @@ export default function StudentDashboard({ student, token, onLogout }) {
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  /* ================= AUTH TOKEN ================= */
-  useEffect(() => {
-    setAuthToken(token);
-  }, [token]);
+  const BASE_URL = "https://backend-hostel-sigma.vercel.app";
 
-  /* ================= IMAGE COMPRESSION ================= */
-  const compressImage = (file) =>
-    new Promise((resolve) => {
+  /* ================= IMAGE COMPRESSION (MOBILE SAFE) ================= */
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
+
       reader.onload = () => {
         const img = new Image();
         img.src = reader.result;
+
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          const MAX_WIDTH = 600;
+          const MAX_WIDTH = 400; // Reduced from 600 for smaller payload
           const scale = MAX_WIDTH / img.width;
 
           canvas.width = MAX_WIDTH;
           canvas.height = img.height * scale;
 
-          canvas.getContext("2d").drawImage(
-            img, 0, 0, canvas.width, canvas.height
-          );
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-          resolve(canvas.toDataURL("image/jpeg", 0.5));
+          const compressed = canvas.toDataURL("image/jpeg", 0.3); // Reduced from 0.5 to 0.3
+          resolve(compressed);
         };
       };
     });
+  };
 
   /* ================= FETCH PAYMENTS ================= */
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const res = await api.get("/payments/my");
+        const res = await axios.get(`${BASE_URL}/api/payments/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setPayments(res.data);
       } catch (err) {
-        console.error("Fetch payments error:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
     fetchPayments();
-  }, []);
+  }, [token]);
 
   const statusColor = (status) => {
     if (status === "Received") return "#4CAF50";
@@ -77,13 +79,19 @@ export default function StudentDashboard({ student, token, onLogout }) {
     setSubmitMsg("");
   };
 
-  /* ================= SUBMIT PAYMENT ================= */
+  /* ================= SUBMIT PAYMENT (FIXED) ================= */
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     if (!selectedMonth) return;
 
+    // Enhanced validation
     if (paymentType === "Online" && !screenshotUrl) {
       setSubmitMsg("Please upload payment screenshot");
+      return;
+    }
+
+    if (paymentType === "Cash" && !cashNote.trim()) {
+      setSubmitMsg("Please enter cash note");
       return;
     }
 
@@ -91,12 +99,25 @@ export default function StudentDashboard({ student, token, onLogout }) {
     setSubmitMsg("");
 
     try {
-      const res = await api.post("/payments/submit", {
+      const payload = {
         paymentType,
-        cashNote,
-        screenshotUrl,
+        cashNote: paymentType === "Cash" ? cashNote.trim() : "",
+        screenshotUrl: paymentType === "Online" ? screenshotUrl : "",
         month: selectedMonth,
-      });
+      };
+
+      console.log("Submitting payment:", payload);
+
+      const res = await axios.post(
+        `${BASE_URL}/api/payments/submit`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       setPayments((prev) => [
         ...prev.filter((p) => p.month !== selectedMonth),
@@ -108,7 +129,9 @@ export default function StudentDashboard({ student, token, onLogout }) {
       setCashNote("");
       setScreenshotUrl("");
     } catch (err) {
-      console.error("Submit error:", err);
+      console.error("Payment submission error:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
       setSubmitMsg(
         err.response?.data?.error || "Payment submission failed"
       );
@@ -124,7 +147,9 @@ export default function StudentDashboard({ student, token, onLogout }) {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>Welcome {student.name}</h1>
-        <button className="logout-btn" onClick={onLogout}>Logout</button>
+        <button className="logout-btn" onClick={onLogout}>
+          Logout
+        </button>
       </header>
 
       <div className="student-info">
@@ -137,7 +162,7 @@ export default function StudentDashboard({ student, token, onLogout }) {
           <div className="modal">
             <h3>Submit Payment for {selectedMonth}</h3>
 
-            <form onSubmit={handlePaymentSubmit}>
+            <form onSubmit={handlePaymentSubmit} className="payment-form">
               <select
                 value={paymentType}
                 onChange={(e) => setPaymentType(e.target.value)}
@@ -149,7 +174,7 @@ export default function StudentDashboard({ student, token, onLogout }) {
               {paymentType === "Cash" && (
                 <input
                   type="text"
-                  placeholder="Cash note"
+                  placeholder="Enter Cash Note"
                   value={cashNote}
                   onChange={(e) => setCashNote(e.target.value)}
                   required
@@ -157,68 +182,110 @@ export default function StudentDashboard({ student, token, onLogout }) {
               )}
 
               {paymentType === "Online" && (
-                <>
+                <div className="online-payment">
                   <input
                     type="file"
+                    id="screenshot-upload"
                     accept="image/*"
+                    style={{ display: "none" }}
                     onChange={async (e) => {
-                      const img = await compressImage(e.target.files[0]);
-                      setScreenshotUrl(img);
+                      const file = e.target.files[0];
+                      if (file) {
+                        const img = await compressImage(file);
+                        setScreenshotUrl(img);
+                      }
                     }}
                   />
+                  <label htmlFor="screenshot-upload" className="upload-btn">
+                    {screenshotUrl ? "Change Screenshot" : "Upload Screenshot"}
+                  </label>
+
                   {screenshotUrl && (
-                    <img src={screenshotUrl} alt="preview" width="100" />
+                    <img
+                      src={screenshotUrl}
+                      alt="Preview"
+                      className="screenshot-preview"
+                    />
                   )}
-                </>
+                </div>
               )}
 
-              <button type="submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
-              <button type="button" onClick={() => setSelectedMonth(null)}>
-                Cancel
-              </button>
+              <div className="modal-actions">
+                <button type="submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonth(null)}
+                >
+                  Cancel
+                </button>
+              </div>
 
-              {submitMsg && <p>{submitMsg}</p>}
+              {submitMsg && <p className="submit-msg">{submitMsg}</p>}
             </form>
           </div>
         </div>
       )}
 
-      <h2>Full Year Payment</h2>
+      <div className="payment-section">
+        <h2>Full Year Payment Table</h2>
 
-      {loading ? <p>Loading...</p> : (
-        <table>
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {months.map((m) => {
-              const pay = getMonthPayment(m);
-              return (
-                <tr key={m}>
-                  <td>{m}</td>
-                  <td style={{ color: statusColor(pay?.status) }}>
-                    {pay?.status || "Not Paid"}
-                  </td>
-                  <td>
-                    <button
-                      disabled={pay?.status === "Received"}
-                      onClick={() => handleMonthClick(m)}
-                    >
-                      {pay?.status === "Received" ? "Paid" : "Pay Now"}
-                    </button>
-                  </td>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <div className="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Year</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Admin Remarks</th>
+                  <th>Action</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+              </thead>
+
+              <tbody>
+                {months.map((month) => {
+                  const pay = getMonthPayment(month);
+                  return (
+                    <tr key={month}>
+                      <td>{month}</td>
+                      <td>{new Date().getFullYear()}</td>
+                      <td>{pay?.paymentType || "-"}</td>
+                      <td
+                        style={{
+                          color: statusColor(pay?.status),
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {pay?.status || "Not Paid"}
+                      </td>
+                      <td>{pay?.adminRemarks || "-"}</td>
+                      <td>
+                        <button
+                          className={`pay-btn ${
+                            pay?.status === "Received" ? "paid-btn" : ""
+                          }`}
+                          disabled={pay?.status === "Received"}
+                          onClick={() =>
+                            pay?.status !== "Received" &&
+                            handleMonthClick(month)
+                          }
+                        >
+                          {pay?.status === "Received" ? "Paid" : "Pay Now"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
